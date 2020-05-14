@@ -1,7 +1,7 @@
 #!/bin/bash
 
 API="http://localhost:4741"
-URL_PATH="/movi"
+URL_PATH="/movies"
 
 curl "${API}${URL_PATH}" \
   --include \
@@ -10,8 +10,11 @@ curl "${API}${URL_PATH}" \
   --header "Authorization: Bearer ${TOKEN}" \
   --data '{
     "movie": {
-      "text": "'"${TEXT}"'",
-      "title": "'"${TITLE}"'"
+      "name": "'"${NAME}"'",
+      "thoughts": "'"${THOUGHTS}"'",
+      "rewatch": "'"${REWATCH}"'",
+      "favorite": "'"${FAVORITE}"'",
+      "rating": "'"${RATING}"'"
     }
   }'
 
