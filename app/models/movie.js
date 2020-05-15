@@ -28,4 +28,4 @@ const movieSchema = new mongoose.Schema({
   toObject: { virtuals: true },
   toJSON: { virtuals: true }
 })
-module.exports = mongoose.model('Movie', movieSchema)
+module.exports = movieSchema

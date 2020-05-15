@@ -1,13 +1,13 @@
-// Express docs: http://expressjs.com/en/api.html
+'use strict'
+
+// require dependencies
 const express = require('express')
-// Passport docs: http://www.passportjs.org/docs/
 const passport = require('passport')
-
-// pull in Mongoose model for movies
-const Movie = require('../models/movie')
-
-// this is a collection of methods that help us detect situations when we need
-// to throw a custom error
+// create an express router object
+const router = express.Router()
+// require book model
+const User = require('./../models/user')
+// require custom error handlers
 const customErrors = require('../../lib/custom_errors')
 
 // we'll use this function to send 404 when non-existant document is requested
@@ -24,91 +24,48 @@ const removeBlanks = require('../../lib/remove_blank_fields')
 // it will also set `req.user`
 const requireToken = passport.authenticate('bearer', { session: false })
 
-// instantiate a router (mini app that only handles routes)
-const router = express.Router()
-
-// INDEX
-// GET /movies
-router.get('/movies', requireToken, (req, res, next) => {
-  Movie.find()
-    .then(movies => {
-      // `movies` will be an array of Mongoose documents
-      // we want to convert each one to a POJO, so we use `.map` to
-      // apply `.toObject` to each one
-      return movies.map(movie => movie.toObject())
-    })
-    // respond with status 200 and JSON of the movies
-    .then(movies => res.status(200).json({ movies: movies }))
-    // if an error occurs, pass it to the handler
-    .catch(next)
-})
-
-// SHOW
-// GET /movies/5a7db6c74d55bc51bdf39793
-router.get('/movies/:id', requireToken, (req, res, next) => {
+// This shows all the movies that are listed to the user
+router.get('/movies/', requireToken, (req, res, next) => {
   // req.params.id will be set based on the `:id` in the route
-  Movie.findById(req.params.id)
+  User.findById(req.user)
     .then(handle404)
     // if `findById` is succesful, respond with 200 and "movie" JSON
-    .then(movie => res.status(200).json({ movie: movie.toObject() }))
+    .then(movie => res.status(200).json({ movie: movie.movies.toObject() }))
     // if an error occurs, pass it to the handler
     .catch(next)
 })
 
-// CREATE
-// POST /movies
-router.post('/movies', requireToken, (req, res, next) => {
-  // // set owner of new movie to be current user
-  // req.body.movie.owner = req.user.id
-
-  Movie.create(req.body.movie)
-    // respond to succesful `create` with status 201 and JSON of new "movie"
-    .then(movie => {
-      res.status(201).json({ movie: movie.toObject() })
-    })
-    // if an error occurs, pass it off to our error handler
-    // the error handler needs the error message and the `res` object so that it
-    // can send an error message back to the client
-    .catch(next)
-})
-
-// UPDATE
-// PATCH /movies/5a7db6c74d55bc51bdf39793
-router.patch('/movies/:id', requireToken, removeBlanks, (req, res, next) => {
-  // if the client attempts to change the `owner` property by including a new
-  // owner, prevent that by deleting that key/value pair
-  // delete req.body.movie.owner
-
-  Movie.findById(req.params.id)
+router.get('/movies/:id', requireToken, (req, res, next) => {
+  // get the movie ID from the params
+  const id = req.params.id
+  console.log(id)
+  // get the user thanks to requireToken
+  const user = req.user
+  console.log(user)
+  // find the user's movie
+  // return the movie
+  User.findOne(user)
     .then(handle404)
-    .then(movie => {
-      // pass the `req` object and the Mongoose record to `requireOwnership`
-      // it will throw an error if the current user isn't the owner
-      // requireOwnership(req, movie)
-
-      // pass the result of Mongoose's `.update` to the next `.then`
-      return movie.updateOne(req.body.movie)
-    })
-    // if that succeeded, return 204 and no JSON
-    .then(() => res.sendStatus(204))
-    // if an error occurs, pass it to the handler
+    .then(movie => res.status(200).json({ movie: movie.movies.id(id).toObject() }))
     .catch(next)
 })
 
-// DESTROY
-// DELETE /movies/5a7db6c74d55bc51bdf39793
-router.delete('/movies/:id', requireToken, (req, res, next) => {
-  Movie.findById(req.params.id)
-    .then(handle404)
-    .then(movie => {
-    //   // throw an error if current user doesn't own `movie`
-    //   requireOwnership(req, movie)
-      // delete the movie ONLY IF the above didn't throw
-      movie.deleteOne()
+// Create: POST /movies save the book data
+router.post('/movies', (req, res, next) => {
+  // get movie data from request
+  const movie = req.body.movie
+  // get movie id from data
+  const userId = movie.user_id
+  // find book by ID
+  User.findById(userId)
+    .then(user => {
+      // add comment and save book
+      user.movies.push(movie)
+      return user.save()
     })
-    // send back 204 and no content if the deletion succeeded
-    .then(() => res.sendStatus(204))
-    // if an error occurs, pass it to the handler
+    // if successful respond with 201 and book json
+    .then(book => res.status(201).json({ book: book.toObject() }))
+    // on error respond with 500 and error message
     .catch(next)
 })
 
