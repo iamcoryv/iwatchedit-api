@@ -79,6 +79,20 @@ router.patch('/movies/:id', requireToken, removeBlanks, (req, res, next) => {
     .catch(next)
 })
 
+router.delete('/movies/:id', requireToken, (req, res, next) => {
+  // get movie id from data
+  // const userId = movie.user_id
+  const user = req.user
+  // find book by ID
+  User.findById(user)
+    .then((user) => {
+      const movie = user.movies.id(req.params.id) // returns a matching subdocument
+      movie.remove()
+      user.save()
+    })
+    .then(() => res.sendStatus(204))
+    .catch(next)
+})
 
 
 module.exports = router
