@@ -9,19 +9,12 @@ const router = express.Router()
 const User = require('./../models/user')
 // require custom error handlers
 const customErrors = require('../../lib/custom_errors')
-
-// we'll use this function to send 404 when non-existant document is requested
+// this function to send 404 when non-existant document is requested
 const handle404 = customErrors.handle404
-// we'll use this function to send 401 when a user tries to modify a resource
-// that's owned by someone else
-// const requireOwnership = customErrors.requireOwnership
-
 // this is middleware that will remove blank fields from `req.body`, e.g.
 // { movie: { title: '', text: 'foo' } } -> { movie: { text: 'foo' } }
 const removeBlanks = require('../../lib/remove_blank_fields')
-// passing this as a second argument to `router.<verb>` will make it
-// so that a token MUST be passed for that route to be available
-// it will also set `req.user`
+// must pass a token for route to work
 const requireToken = passport.authenticate('bearer', { session: false })
 
 // This shows all the movies that are listed to the user
@@ -64,9 +57,28 @@ router.post('/movies', (req, res, next) => {
       return user.save()
     })
     // if successful respond with 201 and book json
-    .then(book => res.status(201).json({ book: book.toObject() }))
+    .then(movie => res.status(201).json({ movie: movie.toObject() }))
     // on error respond with 500 and error message
     .catch(next)
 })
+
+router.patch('/movies/:id', requireToken, removeBlanks, (req, res, next) => {
+  // get movie id from data
+  // const userId = movie.user_id
+  const user = req.user
+  // find book by ID
+  const movieData = req.body.movie
+  console.log(movieData)
+  User.findById(user)
+    .then((user) => {
+      const movie = user.movies.id(req.params.id) // returns a matching subdocument
+      movie.set(movieData) // updates the address while keeping its schema
+      return user.save() // saves document with subdocuments and triggers validation
+    })
+    .then(() => res.sendStatus(204))
+    .catch(next)
+})
+
+
 
 module.exports = router
