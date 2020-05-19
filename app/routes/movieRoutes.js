@@ -17,7 +17,7 @@ const removeBlanks = require('../../lib/remove_blank_fields')
 // must pass a token for route to work
 const requireToken = passport.authenticate('bearer', { session: false })
 
-// This shows all the movies that are listed to the user
+// GET all movies, this shows all the movies that are listed to the user
 router.get('/movies/', requireToken, (req, res, next) => {
   // req.params.id will be set based on the `:id` in the route
   User.findById(req.user)
@@ -28,6 +28,7 @@ router.get('/movies/', requireToken, (req, res, next) => {
     .catch(next)
 })
 
+// GET a specific movie
 router.get('/movies/:id', requireToken, (req, res, next) => {
   // get the movie ID from the params
   const id = req.params.id
@@ -43,14 +44,14 @@ router.get('/movies/:id', requireToken, (req, res, next) => {
     .catch(next)
 })
 
-// Create: POST /movies save the book data
-router.post('/movies', (req, res, next) => {
+// Create a new movie
+router.post('/movies', requireToken, (req, res, next) => {
   // get movie data from request
   const movie = req.body.movie
   // get movie id from data
-  const userId = movie.user_id
+  const user = req.user
   // find book by ID
-  User.findById(userId)
+  User.findById(user)
     .then(user => {
       // add comment and save book
       user.movies.push(movie)
@@ -62,6 +63,7 @@ router.post('/movies', (req, res, next) => {
     .catch(next)
 })
 
+// UPDATE a user's movie
 router.patch('/movies/:id', requireToken, removeBlanks, (req, res, next) => {
   // get movie id from data
   // const userId = movie.user_id
@@ -79,6 +81,7 @@ router.patch('/movies/:id', requireToken, removeBlanks, (req, res, next) => {
     .catch(next)
 })
 
+// DELETE a user's movie
 router.delete('/movies/:id', requireToken, (req, res, next) => {
   // get movie id from data
   // const userId = movie.user_id
@@ -93,6 +96,5 @@ router.delete('/movies/:id', requireToken, (req, res, next) => {
     .then(() => res.sendStatus(204))
     .catch(next)
 })
-
 
 module.exports = router

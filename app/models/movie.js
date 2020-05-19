@@ -5,22 +5,26 @@ const mongoose = require('mongoose')
 const movieSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   thoughts: {
     type: String,
     required: true
   },
   rewatch: {
-    type: Boolean
+    type: Boolean,
+    required: false
   },
   favorite: {
-    type: Boolean
+    type: Boolean,
+    required: false
   },
   rating: {
     type: Number,
     max: 5,
-    min: 1
+    min: 1,
+    required: false
   }
 },
 {

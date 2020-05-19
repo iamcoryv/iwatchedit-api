@@ -14,8 +14,7 @@ curl "${API}${URL_PATH}" \
       "thoughts": "'"${THOUGHTS}"'",
       "rewatch": "'"${REWATCH}"'",
       "favorite": "'"${FAVORITE}"'",
-      "rating": "'"${RATING}"'",
-      "user_id": "'"${USERID}"'"
+      "rating": "'"${RATING}"'"
     }
   }'
 
