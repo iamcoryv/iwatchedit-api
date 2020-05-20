@@ -17,3 +17,4 @@ Links:
 - Express
  - Bcrypt/passport packages
 
+![ERD](https://imgur.com/n9vFXVf)
